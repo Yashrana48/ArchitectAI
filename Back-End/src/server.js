@@ -30,11 +30,21 @@ app.get('/', (req, res) => {
 const questionnaireRoutes = require('./routes/questionnaireRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const learningRoutes = require('./routes/learningRoutes');
+const authRoutes = require('./routes/authRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const decisionRoutes = require('./routes/decisionRoutes');
+const comparisonRoutes = require('./routes/comparisonRoutes');
+const savedRecommendationRoutes = require('./routes/savedRecommendationRoutes');
 
 // Use routes
 app.use('/api/questionnaire', questionnaireRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/learning', learningRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/decisions', decisionRoutes);
+app.use('/api/comparison', comparisonRoutes);
+app.use('/api/saved-recommendations', savedRecommendationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
