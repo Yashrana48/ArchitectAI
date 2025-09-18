@@ -1,49 +1,55 @@
-# AI-Driven Software Architecture Decision System
+# AI-Driven Software Architecture Decision System (ArchitectAI)
 
-## 🏗️ Project Overview
+## Project Overview
 
 This is a comprehensive AI-driven software architecture decision support system developed as part of a Masters dissertation. The system assists software architects and developers in making informed architecture decisions based on project requirements, constraints, and industry best practices.
 
-## ✨ Key Features
+## Key Features
 
-### 🤖 AI-Powered Recommendations
+### AI-Powered Recommendations
 - Intelligent architecture pattern suggestions based on project requirements
 - Context-aware recommendations using OpenAI GPT-3.5-turbo
 - Risk assessment and cost-benefit analysis
 - Real-time analysis with fallback systems
 
-### 📊 Interactive Comparison Tools
+### Interactive Comparison Tools
 - Side-by-side architecture pattern comparison
 - Visual radar charts for multi-dimensional analysis
 - Detailed reports with export capabilities
 - Architecture pattern decision guide
 
-### 📚 Comprehensive Learning Hub
+### Comprehensive Learning Hub
 - **100+ Real-world Case Studies** across various industries
 - **96+ Best Practices** covering 8 categories
 - **9 Architecture Patterns** with detailed explanations
 - **Interactive Diagrams** for visual learning
 - **Technology Comparisons** and recommended stacks
+- **Learning Paths** with YouTube course integration
+- **Progress Tracking** and bookmarking system
+- **Detailed Case Study Viewer** with comprehensive content
 
-### 💬 AI Chatbot
+### AI Chatbot
 - Natural language processing for architecture questions
 - Context-aware conversations
 - Integration with case studies and best practices
 - Follow-up questions for better understanding
 
-### 📋 Intelligent Questionnaire
+### Intelligent Questionnaire
 - Multi-step assessment with 25+ questions
 - Dynamic questioning based on previous answers
 - Comprehensive requirement analysis
 - Progress tracking and guidance
 
-### 📈 Dashboard & Analytics
+### Dashboard & Analytics
 - Project management and tracking
 - Performance analytics and user satisfaction metrics
 - Usage statistics and popular features
 - Export and reporting capabilities
+- **Saved Recommendations** with interactive architecture diagrams
+- **Project Analytics** with detailed metrics
+- **Modal Views** for comprehensive project details
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend
 - **React 18** with TypeScript
@@ -52,6 +58,8 @@ This is a comprehensive AI-driven software architecture decision support system 
 - **React Router** for navigation
 - **Chart.js** for data visualization
 - **Axios** for API communication
+- **Vitest** for unit testing
+- **React Testing Library** for component testing
 
 ### Backend
 - **Node.js** with Express.js
@@ -66,7 +74,7 @@ This is a comprehensive AI-driven software architecture decision support system 
 - **Mathematical models** for risk assessment and cost analysis
 - **Fallback systems** for reliability
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -113,10 +121,10 @@ This is a comprehensive AI-driven software architecture decision support system 
    ```
 
 6. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:3000
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ArchitectAI/
@@ -144,7 +152,7 @@ ArchitectAI/
 └── README.md                   # This file
 ```
 
-## 🎯 Core Functionality
+## Core Functionality
 
 ### 1. Architecture Assessment
 - Comprehensive questionnaire covering project requirements
@@ -195,7 +203,7 @@ ArchitectAI/
 - `GET /api/comparison/patterns` - Get architecture patterns for comparison
 - `POST /api/comparison/analyze` - Analyze architecture patterns
 
-## 📊 System Architecture
+## System Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -211,12 +219,14 @@ ArchitectAI/
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🧪 Testing
+## Testing
 
-### Frontend Testing
+### Frontend Testing (Vitest + React Testing Library)
 ```bash
 cd my-react-app
-npm test
+npm test                    # Run tests
+npm run test:ui            # Run tests with UI
+npm run test:coverage      # Run tests with coverage
 ```
 
 ### Backend Testing
@@ -225,13 +235,18 @@ cd Back-End
 npm test
 ```
 
+### API Testing (Postman)
+- Import the provided Postman collection: `ArchitectAI_API_Tests.postman_collection.json`
+- Follow the testing guide: `POSTMAN_TESTING_GUIDE.md`
+- Test all API endpoints with automated assertions
+
 ### Integration Testing
 ```bash
 # Run full test suite
 npm run test:integration
 ```
 
-## 📈 Performance Metrics
+##  Performance Metrics
 
 - **Response Time**: Average API response time < 500ms
 - **Uptime**: 99.9% system availability
@@ -239,7 +254,27 @@ npm run test:integration
 - **AI Accuracy**: 85%+ user satisfaction with recommendations
 - **Coverage**: Support for 9+ major architecture patterns
 
-## 🔒 Security
+## Recent Updates
+
+### Testing Infrastructure
+- **Frontend Unit Testing**: Vitest + React Testing Library setup
+- **API Testing**: Comprehensive Postman collection with automated assertions
+- **Test Coverage**: Component testing with coverage reports
+- **Integration Testing**: End-to-end workflow testing
+
+### Enhanced Learning Hub
+- **Interactive Learning Paths**: YouTube course integration
+- **Progress Tracking**: User progress persistence with Local Storage
+- **Bookmarking System**: Save favorite case studies and practices
+- **Detailed Case Studies**: Enhanced content with code examples and diagrams
+
+### Improved User Experience
+- **Modal Views**: Enhanced project details with interactive diagrams
+- **Save Functionality**: Save questionnaire results to dashboard
+- **Close Controls**: Improved modal navigation and user control
+- **Responsive Design**: Optimized for all device sizes
+
+## Security
 
 - JWT-based authentication
 - Input validation and sanitization
@@ -247,13 +282,14 @@ npm run test:integration
 - Environment variable protection
 - API rate limiting
 
-## 📚 Documentation
+## Documentation
 
-- **[Comprehensive Documentation](DOCUMENTATION.md)** - Detailed project documentation
-- **[Development Log](DEVELOPMENT_LOG.md)** - Development history and decisions
-- **[API Documentation](Back-End/README.md)** - Backend API documentation
+- **[Development Log](DEVELOPMENT_LOG_REORGANIZED.md)** - Complete development history and decisions
+- **[API Testing Guide](POSTMAN_TESTING_GUIDE.md)** - Comprehensive API testing documentation
+- **[Postman Collection](ArchitectAI_API_Tests.postman_collection.json)** - Ready-to-use API test collection
+- **[Backend Documentation](Back-End/README.md)** - Backend API documentation
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -261,27 +297,17 @@ npm run test:integration
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Authors
 
-## 👥 Authors
+- **Yash Rana** - [Yashrana48](https://github.com/Yashrana48)
 
-- **Yash Rana** - *Initial work* - [Yashrana48](https://github.com/Yashrana48)
 
-## 🙏 Acknowledgments
-
-- OpenAI for providing the GPT-3.5-turbo API
-- The React and Node.js communities for excellent documentation
-- Industry experts who provided case study insights
-- Academic supervisors for guidance and feedback
-
-## 📞 Contact
+## Contact
 
 - **Email**: [your-email@example.com]
-- **LinkedIn**: [Your LinkedIn Profile]
 - **GitHub**: [Yashrana48](https://github.com/Yashrana48)
 
 ---
 
-**Note**: This project is developed as part of a Masters dissertation in Computer Science. For academic use and research purposes.
+**Note**: This project is developed as part of a Masters dissertation in Software Engineering. For academic use and research purposes.
