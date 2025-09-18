@@ -305,7 +305,7 @@ npm run test:integration
 
 ## Contact
 
-- **Email**: [your-email@example.com]
+- **Email**: [ranayash424@gmail.com]
 - **GitHub**: [Yashrana48](https://github.com/Yashrana48)
 
 ---
