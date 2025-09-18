@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InteractiveArchitectureDiagram from '../components/InteractiveArchitectureDiagram';
+import { useUser } from '../contexts/UserContext';
+import { savedRecommendationService } from '../services/savedRecommendationService';
 
 interface Question {
   id: string;
@@ -48,6 +50,7 @@ interface ArchitectureRecommendation {
 
 const Questionnaire: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +59,8 @@ const Questionnaire: React.FC = () => {
   const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showInteractiveDiagram, setShowInteractiveDiagram] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const questions: Question[] = [
     // Project Overview
@@ -812,6 +817,53 @@ const Questionnaire: React.FC = () => {
     return ((currentStep + 1) / categories.length) * 100;
   };
 
+  const handleSaveRecommendations = async () => {
+    if (!isAuthenticated || !user) {
+      setSaveMessage('Please log in to save your recommendations');
+      return;
+    }
+
+    if (recommendations.length === 0) {
+      setSaveMessage('No recommendations to save');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      // Generate a project name based on answers
+      const projectName = `${answers.projectType || 'Architecture'} Project - ${new Date().toLocaleDateString()}`;
+      
+      // Create the recommendation data
+      const recommendationData = {
+        projectName,
+        projectType: answers.projectType || 'Web Application',
+        industry: answers.industry || 'Technology',
+        teamSize: answers.teamSize || '4-7 developers',
+        budget: answers.budget || '$1,000 - $5,000/month',
+        status: 'active',
+        requirements: convertToAIRequirements(answers as QuestionnaireAnswers),
+        recommendations: recommendations,
+        aiRecommendations: aiRecommendations
+      };
+
+      // Save the recommendation
+      await savedRecommendationService.saveRecommendation(user._id, recommendationData);
+      
+      setSaveMessage('✅ Recommendations saved successfully!');
+      setTimeout(() => {
+        setSaveMessage(null);
+        navigate('/dashboard');
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving recommendations:', error);
+      setSaveMessage('❌ Failed to save recommendations. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const renderQuestion = (question: Question) => {
     const value = answers[question.id] || '';
 
@@ -1149,6 +1201,17 @@ const Questionnaire: React.FC = () => {
                   </div>
                 )}
 
+                {/* Save Message */}
+                {saveMessage && (
+                  <div className={`text-center p-4 rounded-lg mb-6 ${
+                    saveMessage.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' :
+                    saveMessage.includes('❌') ? 'bg-red-50 text-red-700 border border-red-200' :
+                    'bg-blue-50 text-blue-700 border border-blue-200'
+                  }`}>
+                    {saveMessage}
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="text-center space-y-4">
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1159,10 +1222,23 @@ const Questionnaire: React.FC = () => {
                       🔍 Compare These Options
                     </button>
                     <button
-                      onClick={() => navigate('/dashboard')}
-                      className="px-8 py-4 bg-white text-slate-700 rounded-xl font-semibold text-lg hover:bg-slate-50 transition-all duration-300 border-2 border-slate-200 hover:border-slate-300"
+                      onClick={handleSaveRecommendations}
+                      disabled={isSaving || !isAuthenticated}
+                      className="px-8 py-4 bg-white text-slate-700 rounded-xl font-semibold text-lg hover:bg-slate-50 transition-all duration-300 border-2 border-slate-200 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      📊 Save to Dashboard
+                      {isSaving ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving...
+                        </span>
+                      ) : !isAuthenticated ? (
+                        '🔐 Login to Save'
+                      ) : (
+                        '📊 Save to Dashboard'
+                      )}
                     </button>
                     <button
                       onClick={() => navigate('/chatbot')}

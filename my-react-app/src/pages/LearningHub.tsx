@@ -1,11 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ArchitectureDiagram from '../components/ArchitectureDiagram';
 import TechnologyComparison from '../components/TechnologyComparison';
+import DetailedCaseStudyViewer from '../components/DetailedCaseStudyViewer';
 import { caseStudies } from '../data/caseStudies';
 import { additionalCaseStudies } from '../data/additionalCaseStudies';
 import { moreCaseStudies } from '../data/moreCaseStudies';
 import { finalCaseStudies } from '../data/finalCaseStudies';
+import { enhancedCaseStudies } from '../data/enhancedCaseStudies';
+import { useUser } from '../contexts/UserContext';
 import type { CaseStudy } from '../data/caseStudies';
+import type { EnhancedCaseStudy } from '../data/enhancedCaseStudies';
 
 interface BestPractice {
   category: string;
@@ -14,13 +18,44 @@ interface BestPractice {
   practices: string[];
 }
 
+interface UserProgress {
+  userId: string;
+  readContent: string[];
+  bookmarkedContent: string[];
+  learningPath: string;
+  completedQuizzes: string[];
+  lastAccessed: string;
+}
+
+// Learning Path interface for future use
+// interface LearningPath {
+//   id: string;
+//   title: string;
+//   description: string;
+//   targetRole: string;
+//   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+//   estimatedTime: string;
+//   content: {
+//     caseStudies: string[];
+//     bestPractices: string[];
+//     patterns: string[];
+//     quizzes: string[];
+//   };
+// }
+
 const LearningHub: React.FC = () => {
+  const { user, isAuthenticated } = useUser();
   const [activeTab, setActiveTab] = useState('case-studies');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
   const [selectedComplexity, setSelectedComplexity] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDiagram, setSelectedDiagram] = useState('microservices');
+  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(new Set());
+  const [readItems, setReadItems] = useState<Set<string>>(new Set());
+  const [selectedDetailedCaseStudy, setSelectedDetailedCaseStudy] = useState<EnhancedCaseStudy | null>(null);
+  // const [showLearningPaths, setShowLearningPaths] = useState(false);
 
   // Combine all case studies
   const allCaseStudies: CaseStudy[] = useMemo(() => [
@@ -45,6 +80,77 @@ const LearningHub: React.FC = () => {
     const comps = [...new Set(allCaseStudies.map(study => study.complexity))];
     return ['all', ...comps];
   }, [allCaseStudies]);
+
+  // Load user progress on component mount
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadUserProgress();
+    }
+  }, [isAuthenticated, user]);
+
+  // Load user progress from localStorage or API
+  const loadUserProgress = () => {
+    const savedProgress = localStorage.getItem(`learningProgress_${user?._id}`);
+    if (savedProgress) {
+      const progress: UserProgress = JSON.parse(savedProgress);
+      setUserProgress(progress);
+      setBookmarkedItems(new Set(progress.bookmarkedContent));
+      setReadItems(new Set(progress.readContent));
+    }
+  };
+
+  // Save user progress
+  const saveUserProgress = (newProgress: Partial<UserProgress>) => {
+    if (!user) return;
+    
+    const updatedProgress: UserProgress = {
+      userId: user._id,
+      readContent: Array.from(readItems),
+      bookmarkedContent: Array.from(bookmarkedItems),
+      learningPath: userProgress?.learningPath || '',
+      completedQuizzes: userProgress?.completedQuizzes || [],
+      lastAccessed: new Date().toISOString(),
+      ...newProgress
+    };
+    
+    setUserProgress(updatedProgress);
+    localStorage.setItem(`learningProgress_${user._id}`, JSON.stringify(updatedProgress));
+  };
+
+  // Toggle bookmark
+  const toggleBookmark = (contentId: string) => {
+    if (!isAuthenticated) {
+      alert('Please log in to bookmark content');
+      return;
+    }
+    
+    const newBookmarks = new Set(bookmarkedItems);
+    if (newBookmarks.has(contentId)) {
+      newBookmarks.delete(contentId);
+    } else {
+      newBookmarks.add(contentId);
+    }
+    setBookmarkedItems(newBookmarks);
+    saveUserProgress({ bookmarkedContent: Array.from(newBookmarks) });
+  };
+
+  // Mark as read
+  const markAsRead = (contentId: string) => {
+    if (!isAuthenticated) return;
+    
+    const newReadItems = new Set(readItems);
+    newReadItems.add(contentId);
+    setReadItems(newReadItems);
+    saveUserProgress({ readContent: Array.from(newReadItems) });
+  };
+
+  // Open detailed case study viewer
+  const openDetailedCaseStudy = (caseStudyId: string) => {
+    const enhancedCaseStudy = enhancedCaseStudies.find(cs => cs.id === caseStudyId);
+    if (enhancedCaseStudy) {
+      setSelectedDetailedCaseStudy(enhancedCaseStudy);
+    }
+  };
 
   // Filter case studies based on selected criteria
   const filteredCaseStudies = useMemo(() => {
@@ -686,6 +792,33 @@ const LearningHub: React.FC = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
             Master software architecture through {totalCaseStudies}+ real-world case studies, best practices, and proven patterns from industry leaders.
           </p>
+          
+          {/* Progress Overview */}
+          {isAuthenticated && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 max-w-4xl mx-auto mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Your Learning Progress</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{readItems.size}</div>
+                  <div className="text-sm text-gray-600">Content Read</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">{bookmarkedItems.size}</div>
+                  <div className="text-sm text-gray-600">Bookmarked</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{allCaseStudies.length}</div>
+                  <div className="text-sm text-gray-600">Total Available</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {allCaseStudies.length > 0 ? Math.round((readItems.size / allCaseStudies.length) * 100) : 0}%
+                  </div>
+                  <div className="text-sm text-gray-600">Progress</div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="flex justify-center items-center space-x-8 text-sm text-gray-500">
             <div className="flex items-center">
               <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
@@ -755,6 +888,16 @@ const LearningHub: React.FC = () => {
                 }`}
               >
                 Technology Comparison
+              </button>
+              <button
+                onClick={() => setActiveTab('learning-paths')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'learning-paths'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Learning Paths
               </button>
             </div>
           </div>
@@ -841,14 +984,41 @@ const LearningHub: React.FC = () => {
               {/* Case Studies Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCaseStudies.map((study) => (
-                  <div key={study.id} className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                  <div 
+                    key={study.id} 
+                    className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                    onClick={() => markAsRead(study.id)}
+                  >
                     <div className="p-6">
                       {/* Header */}
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-xl font-bold text-gray-800">{study.company}</h3>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          {study.year}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                            {study.year}
+                          </span>
+                          {/* Progress and Bookmark Indicators */}
+                          {isAuthenticated && (
+                            <div className="flex items-center space-x-1">
+                              {readItems.has(study.id) && (
+                                <span className="text-green-500 text-sm" title="Read">
+                                  ✓
+                                </span>
+                              )}
+                              <button
+                                onClick={() => toggleBookmark(study.id)}
+                                className={`text-sm transition-colors ${
+                                  bookmarkedItems.has(study.id) 
+                                    ? 'text-yellow-500' 
+                                    : 'text-gray-400 hover:text-yellow-500'
+                                }`}
+                                title={bookmarkedItems.has(study.id) ? 'Remove bookmark' : 'Add bookmark'}
+                              >
+                                {bookmarkedItems.has(study.id) ? '⭐' : '☆'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
                       <h4 className="text-lg font-semibold text-gray-700 mb-3">{study.title}</h4>
@@ -919,6 +1089,25 @@ const LearningHub: React.FC = () => {
                             </li>
                           ))}
                         </ul>
+                      </div>
+
+                      {/* View Details Button or Coming Soon */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        {enhancedCaseStudies.find(cs => cs.id === study.id) ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDetailedCaseStudy(study.id);
+                            }}
+                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            📖 View Detailed Case Study
+                          </button>
+                        ) : (
+                          <div className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-lg text-sm font-medium text-center">
+                            🔜 Detailed Case Study Coming Soon
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1711,8 +1900,308 @@ const LearningHub: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Learning Paths Tab */}
+          {activeTab === 'learning-paths' && (
+            <div>
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Learning Paths</h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Choose a guided learning journey tailored to your role and experience level
+                </p>
+              </div>
+
+              {/* Learning Paths Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Software Architect Path */}
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                      <span className="text-2xl">🏗️</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Software Architect</h3>
+                      <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Advanced</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    Master enterprise architecture patterns, microservices design, and system scalability
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500 mb-4">
+                    <div>• 15 Case Studies</div>
+                    <div>• 8 Best Practices</div>
+                    <div>• 3 Quizzes</div>
+                    <div>• 6-8 weeks</div>
+                  </div>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=dihfA7Ol6Mw', '_blank')}
+                      className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      📚 Start Learning Path
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('best-practices')}
+                      className="w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                    >
+                      📋 View Best Practices
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('patterns')}
+                      className="w-full bg-blue-50 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                    >
+                      🏗️ View Architecture Patterns
+                    </button>
+                  </div>
+                </div>
+
+                {/* Full Stack Developer Path */}
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                      <span className="text-2xl">💻</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Full Stack Developer</h3>
+                      <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">Intermediate</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    Learn modern web development patterns, API design, and deployment strategies
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500 mb-4">
+                    <div>• 12 Case Studies</div>
+                    <div>• 6 Best Practices</div>
+                    <div>• 2 Quizzes</div>
+                    <div>• 4-6 weeks</div>
+                  </div>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=nu_pCVPKzTk', '_blank')}
+                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      📚 Start Learning Path
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('best-practices')}
+                      className="w-full bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors text-sm"
+                    >
+                      📋 View Best Practices
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('patterns')}
+                      className="w-full bg-green-50 text-green-600 py-2 px-4 rounded-lg hover:bg-green-100 transition-colors text-sm"
+                    >
+                      🏗️ View Architecture Patterns
+                    </button>
+                  </div>
+                </div>
+
+                {/* DevOps Engineer Path */}
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                      <span className="text-2xl">⚙️</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">DevOps Engineer</h3>
+                      <span className="text-sm text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Intermediate</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    Master infrastructure as code, CI/CD pipelines, and cloud architecture
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500 mb-4">
+                    <div>• 10 Case Studies</div>
+                    <div>• 5 Best Practices</div>
+                    <div>• 2 Quizzes</div>
+                    <div>• 3-5 weeks</div>
+                  </div>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=j5Zsa_eOXeY', '_blank')}
+                      className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      📚 Start Learning Path
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('best-practices')}
+                      className="w-full bg-purple-100 text-purple-700 py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+                    >
+                      📋 View Best Practices
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('patterns')}
+                      className="w-full bg-purple-50 text-purple-600 py-2 px-4 rounded-lg hover:bg-purple-100 transition-colors text-sm"
+                    >
+                      🏗️ View Architecture Patterns
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tech Lead Path */}
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                      <span className="text-2xl">👥</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Tech Lead</h3>
+                      <span className="text-sm text-orange-600 bg-orange-100 px-2 py-1 rounded-full">Advanced</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    Lead technical decisions, team architecture, and system design at scale
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500 mb-4">
+                    <div>• 18 Case Studies</div>
+                    <div>• 10 Best Practices</div>
+                    <div>• 4 Quizzes</div>
+                    <div>• 8-10 weeks</div>
+                  </div>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=LNE_HuuLbUw', '_blank')}
+                      className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      📚 Start Learning Path
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('best-practices')}
+                      className="w-full bg-orange-100 text-orange-700 py-2 px-4 rounded-lg hover:bg-orange-200 transition-colors text-sm"
+                    >
+                      📋 View Best Practices
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('patterns')}
+                      className="w-full bg-orange-50 text-orange-600 py-2 px-4 rounded-lg hover:bg-orange-100 transition-colors text-sm"
+                    >
+                      🏗️ View Architecture Patterns
+                    </button>
+                  </div>
+                </div>
+
+                {/* Startup Founder Path */}
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Startup Founder</h3>
+                      <span className="text-sm text-red-600 bg-red-100 px-2 py-1 rounded-full">Beginner</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    Build MVP architecture, choose tech stack, and scale from startup to enterprise
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500 mb-4">
+                    <div>• 8 Case Studies</div>
+                    <div>• 4 Best Practices</div>
+                    <div>• 1 Quiz</div>
+                    <div>• 2-3 weeks</div>
+                  </div>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=ZoqgAy3h4OM', '_blank')}
+                      className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      📚 Start Learning Path
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('best-practices')}
+                      className="w-full bg-red-100 text-red-700 py-2 px-4 rounded-lg hover:bg-red-200 transition-colors text-sm"
+                    >
+                      📋 View Best Practices
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('patterns')}
+                      className="w-full bg-red-50 text-red-600 py-2 px-4 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                    >
+                      🏗️ View Architecture Patterns
+                    </button>
+                  </div>
+                </div>
+
+                {/* Data Engineer Path */}
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mr-4">
+                      <span className="text-2xl">📊</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Data Engineer</h3>
+                      <span className="text-sm text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">Intermediate</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    Design data pipelines, data lakes, and real-time processing architectures
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500 mb-4">
+                    <div>• 12 Case Studies</div>
+                    <div>• 6 Best Practices</div>
+                    <div>• 2 Quizzes</div>
+                    <div>• 4-6 weeks</div>
+                  </div>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=qWru-b6m030', '_blank')}
+                      className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      📚 Start Learning Path
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('best-practices')}
+                      className="w-full bg-indigo-100 text-indigo-700 py-2 px-4 rounded-lg hover:bg-indigo-200 transition-colors text-sm"
+                    >
+                      📋 View Best Practices
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('patterns')}
+                      className="w-full bg-indigo-50 text-indigo-600 py-2 px-4 rounded-lg hover:bg-indigo-100 transition-colors text-sm"
+                    >
+                      🏗️ View Architecture Patterns
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Overview */}
+              {isAuthenticated && userProgress && (
+                <div className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">Your Learning Progress</h3>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600">{readItems.size}</div>
+                      <div className="text-sm text-gray-600">Content Read</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600">{bookmarkedItems.size}</div>
+                      <div className="text-sm text-gray-600">Bookmarked</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-purple-600">{userProgress.completedQuizzes.length}</div>
+                      <div className="text-sm text-gray-600">Quizzes Completed</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Detailed Case Study Viewer */}
+      {selectedDetailedCaseStudy && (
+        <DetailedCaseStudyViewer
+          caseStudy={selectedDetailedCaseStudy}
+          onClose={() => setSelectedDetailedCaseStudy(null)}
+          isBookmarked={bookmarkedItems.has(selectedDetailedCaseStudy.id)}
+          onToggleBookmark={() => toggleBookmark(selectedDetailedCaseStudy.id)}
+          isRead={readItems.has(selectedDetailedCaseStudy.id)}
+          onMarkAsRead={() => markAsRead(selectedDetailedCaseStudy.id)}
+        />
+      )}
     </div>
   );
 };

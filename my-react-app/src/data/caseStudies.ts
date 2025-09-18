@@ -20,6 +20,56 @@ export interface CaseStudy {
   teamSize: string;
   budget: string;
   timeline: string;
+  // Enhanced detailed content
+  detailedDescription: string;
+  technicalDeepDive: {
+    architectureOverview: string;
+    keyComponents: string[];
+    dataFlow: string;
+    securityMeasures: string[];
+    scalabilityApproach: string;
+    monitoringStrategy: string;
+  };
+  implementationPhases: {
+    phase: string;
+    duration: string;
+    keyActivities: string[];
+    outcomes: string[];
+  }[];
+  codeExamples: {
+    language: string;
+    title: string;
+    description: string;
+    code: string;
+  }[];
+  diagrams: {
+    type: 'architecture' | 'data-flow' | 'deployment' | 'sequence';
+    title: string;
+    description: string;
+    imageUrl?: string;
+  }[];
+  externalResources: {
+    title: string;
+    url: string;
+    type: 'article' | 'video' | 'documentation' | 'github' | 'blog' | 'whitepaper';
+    description: string;
+  }[];
+  relatedCaseStudies: string[];
+  keyMetrics: {
+    metric: string;
+    value: string;
+    improvement: string;
+  }[];
+  bestPractices: string[];
+  antiPatterns: string[];
+  toolsAndFrameworks: {
+    category: string;
+    tools: string[];
+  }[];
+  lessonsLearned: {
+    category: string;
+    lessons: string[];
+  }[];
 }
 
 export const caseStudies: CaseStudy[] = [

@@ -38,28 +38,32 @@ const InteractiveArchitectureDiagram: React.FC<InteractiveArchitectureDiagramPro
   const animationRef = useRef<number | undefined>(undefined);
 
   // Convert recommendations to nodes
-  const nodes: ArchitectureNode[] = recommendations.map((rec, index) => ({
-    id: rec.architecture.type,
-    name: rec.architecture.name,
-    type: rec.architecture.type as any,
-    x: 150 + (index * 200),
-    y: 200,
-    size: 60 + (rec.architecture.score / 10),
-    score: rec.architecture.score,
-    confidence: rec.architecture.confidence,
-    riskLevel: rec.architecture.riskAssessment?.riskLevel || 'Medium',
-    isRecommended: index === 0,
-    details: {
-      advantages: rec.architecture.advantages,
-      disadvantages: rec.architecture.disadvantages,
-      bestFor: rec.architecture.bestFor,
-      costAnalysis: rec.architecture.costAnalysis,
-      riskAssessment: rec.architecture.riskAssessment
-    }
-  }));
+  const nodes: ArchitectureNode[] = recommendations
+    .filter(rec => rec && rec.architecture) // Filter out invalid recommendations
+    .map((rec, index) => ({
+      id: rec.architecture.type,
+      name: rec.architecture.name,
+      type: rec.architecture.type as any,
+      x: 150 + (index * 200),
+      y: 200,
+      size: 60 + (rec.architecture.score / 10),
+      score: rec.architecture.score,
+      confidence: rec.architecture.confidence,
+      riskLevel: rec.architecture.riskAssessment?.riskLevel || 'Medium',
+      isRecommended: index === 0,
+      details: {
+        advantages: rec.architecture.advantages,
+        disadvantages: rec.architecture.disadvantages,
+        bestFor: rec.architecture.bestFor,
+        costAnalysis: rec.architecture.costAnalysis,
+        riskAssessment: rec.architecture.riskAssessment
+      }
+    }));
 
   // Animation loop
   useEffect(() => {
+    if (nodes.length === 0) return; // Don't animate if no nodes
+    
     const animate = () => {
       setAnimationPhase(prev => (prev + 1) % 360);
       animationRef.current = requestAnimationFrame(animate);
@@ -71,7 +75,7 @@ const InteractiveArchitectureDiagram: React.FC<InteractiveArchitectureDiagramPro
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, []);
+  }, [nodes.length]);
 
   // Draw canvas
   useEffect(() => {
@@ -302,6 +306,19 @@ const InteractiveArchitectureDiagram: React.FC<InteractiveArchitectureDiagramPro
 
     setHoveredNode(hoveredNode?.id || null);
   };
+
+  // If no valid nodes, show fallback
+  if (nodes.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-48 bg-gray-50 rounded-lg">
+        <div className="text-center text-gray-500">
+          <div className="text-4xl mb-2">🏗️</div>
+          <p>No interactive diagram available</p>
+          <p className="text-sm">This project doesn't have interactive architecture data</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">

@@ -4,7 +4,7 @@ import AIPerformanceDashboard from '../components/AIPerformanceDashboard';
 import InteractiveArchitectureDiagram from '../components/InteractiveArchitectureDiagram';
 import { useUser } from '../contexts/UserContext';
 import { savedRecommendationService } from '../services/savedRecommendationService';
-import type { SavedRecommendation, ProjectMetrics, ArchitectureRecommendation } from '../services/savedRecommendationService';
+import type { SavedRecommendation, ProjectMetrics } from '../services/savedRecommendationService';
 
 const Dashboard: React.FC = () => {
   const location = useLocation();
@@ -405,16 +405,32 @@ const Dashboard: React.FC = () => {
 
         {/* Selected Project Modal */}
         {selectedProject && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={() => setSelectedProject(null)}
+          >
+            <div 
+              className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Debug info - remove in production */}
+              {import.meta.env.DEV && (
+                <div className="p-2 bg-yellow-50 text-xs text-slate-600">
+                  Debug: Recommendations: {selectedProject.recommendations?.length || 0}, 
+                  AI Recommendations: {selectedProject.aiRecommendations?.length || 0}
+                </div>
+              )}
               <div className="p-6 border-b border-slate-200">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold text-slate-800">{selectedProject.projectName}</h2>
                   <button
                     onClick={() => setSelectedProject(null)}
-                    className="text-slate-400 hover:text-slate-600"
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Close"
                   >
-                    ✕
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -432,34 +448,61 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                   
-                                     <div>
-                     <h3 className="font-semibold text-slate-800 mb-2">Architecture Diagram</h3>
-                     <div className="bg-slate-50 rounded-lg p-4 h-48 flex items-center justify-center">
-                       <InteractiveArchitectureDiagram 
-                         recommendations={selectedProject.recommendations}
-                         requirements={selectedProject.requirements}
-                       />
-                     </div>
-                   </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800 mb-2">Architecture Diagram</h3>
+                    <div className="bg-slate-50 rounded-lg p-4 h-48 flex items-center justify-center">
+                      {selectedProject.aiRecommendations && selectedProject.aiRecommendations.length > 0 ? (
+                        <InteractiveArchitectureDiagram 
+                          recommendations={selectedProject.aiRecommendations}
+                          requirements={selectedProject.requirements}
+                        />
+                      ) : (
+                        <div className="text-center text-slate-500">
+                          <div className="text-4xl mb-2">🏗️</div>
+                          <p>No interactive diagram available</p>
+                          <p className="text-sm">This project was created before interactive diagrams were added</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 
                 <div>
                   <h3 className="font-semibold text-slate-800 mb-4">Recommendations</h3>
-                  <div className="space-y-4">
-                    {selectedProject.recommendations.map((rec, index) => (
-                      <div key={index} className="bg-slate-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-slate-800">{rec.name}</h4>
-                          <span className="text-sm text-slate-500">{rec.category}</span>
+                  {selectedProject.recommendations && selectedProject.recommendations.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedProject.recommendations.map((rec, index) => (
+                        <div key={index} className="bg-slate-50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-slate-800">{rec.name}</h4>
+                            <span className="text-sm text-slate-500">{rec.category}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 mb-2">{rec.description}</p>
+                          <div className="flex items-center justify-between text-xs text-slate-500">
+                            <span>Confidence: {rec.confidence}%</span>
+                            <span>Complexity: {rec.complexity}</span>
+                            <span>Cost: {rec.estimatedCost}</span>
+                          </div>
                         </div>
-                        <p className="text-sm text-slate-600 mb-2">{rec.description}</p>
-                        <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span>Confidence: {rec.confidence}%</span>
-                          <span>Complexity: {rec.complexity}</span>
-                          <span>Cost: {rec.estimatedCost}</span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-500">
+                      <div className="text-4xl mb-2">📋</div>
+                      <p>No recommendations available</p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Close Button */}
+                <div className="mt-8 pt-6 border-t border-slate-200">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setSelectedProject(null)}
+                      className="px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                    >
+                      Close
+                    </button>
                   </div>
                 </div>
               </div>

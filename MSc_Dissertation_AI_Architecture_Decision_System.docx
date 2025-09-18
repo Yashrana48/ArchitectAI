@@ -1,0 +1,66 @@
+FACULTY OF ENGINEERING, COMPUTING AND THE ENVIRONMENT  
+School of Computer Science and Mathematics
+
+MSc DEGREE 
+IN 
+SOFTWARE ENGINEERING
+
+Name: [Your Name]
+ID Number: [Your Student ID]
+Project Title: AI-Driven Software Architecture Decision System
+Project Type: Type 3 - Software/IT Management Project
+Date: December 2024
+Supervisor: [Supervisor Name]
+
+WARRANTY STATEMENT
+This is a student project. Therefore, neither the student nor Kingston University makes any warranty, express or implied, as to the accuracy of the data or conclusion of the work performed in the project and will not be held responsible for any consequences arising out of any inaccuracies or omissions therein.
+
+TABLE OF CONTENTS
+
+1. ABSTRACT ................................................................................................ 3
+2. ACKNOWLEDGEMENTS .............................................................................. 4
+3. INTRODUCTION AND BACKGROUND ......................................................... 5
+4. LITERATURE REVIEW ................................................................................ 8
+5. METHODOLOGY ...................................................................................... 15
+6. SYSTEM ANALYSIS AND DESIGN ............................................................ 20
+7. IMPLEMENTATION ................................................................................... 28
+8. TESTING AND VALIDATION ...................................................................... 35
+9. RESULTS AND EVALUATION .................................................................... 40
+10. DISCUSSION .......................................................................................... 45
+11. CONCLUSIONS AND FUTURE WORK ...................................................... 48
+12. REFERENCES ......................................................................................... 50
+13. APPENDICES ......................................................................................... 55
+
+LIST OF FIGURES
+Figure 1: System Architecture Overview .................................................... 21
+Figure 2: Frontend Component Architecture .............................................. 22
+Figure 3: Backend API Structure .............................................................. 23
+Figure 4: AI Recommendation Process Flow .............................................. 24
+Figure 5: Database Entity Relationship Diagram ....................................... 25
+Figure 6: User Interface Screenshots ...................................................... 26
+Figure 7: Performance Metrics Dashboard ............................................... 27
+Figure 8: Case Study Analysis Results .................................................... 41
+Figure 9: Recommendation Accuracy Comparison ...................................... 42
+Figure 10: User Satisfaction Survey Results ............................................ 43
+
+LIST OF TABLES
+Table 1: Technology Stack Comparison ................................................... 16
+Table 2: Architecture Pattern Scoring Matrix ........................................... 18
+Table 3: Case Study Categories and Distribution ...................................... 19
+Table 4: API Endpoint Specifications ..................................................... 29
+Table 5: Test Case Results Summary ...................................................... 36
+Table 6: Performance Benchmark Results ................................................ 37
+Table 7: User Acceptance Testing Results .............................................. 38
+Table 8: Recommendation Accuracy Metrics ............................................. 44
+
+GLOSSARY OF TERMS
+AI - Artificial Intelligence
+API - Application Programming Interface
+CQRS - Command Query Responsibility Segregation
+DSR - Design Science Research
+JWT - JSON Web Token
+MVC - Model-View-Controller
+ODM - Object Document Mapper
+REST - Representational State Transfer
+SOA - Service-Oriented Architecture
+UI/UX - User Interface/User Experience
